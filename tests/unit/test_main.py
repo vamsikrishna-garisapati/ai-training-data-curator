@@ -149,6 +149,18 @@ async def test_main_deduplicates_seed_urls():
 
 
 @pytest.mark.asyncio
+async def test_main_writes_summary_when_kv_store_is_read_only():
+    actor_patch, mock_actor = _patch_actor({"startUrls": [{"url": "https://books.toscrape.com"}]})
+    mock_actor.set_value = AsyncMock(side_effect=Exception("read-only key-value store"))
+    mock_crawler = AsyncMock()
+    with actor_patch, patch("src.main.build_crawler", return_value=mock_crawler):
+        await main()
+
+    mock_actor.set_value.assert_awaited_once()
+    mock_actor.log.warning.assert_called()
+
+
+@pytest.mark.asyncio
 async def test_main_exports_summary():
     mock_crawler = AsyncMock()
     actor_patch, mock_actor = _patch_actor({"startUrls": [{"url": "https://books.toscrape.com"}]})

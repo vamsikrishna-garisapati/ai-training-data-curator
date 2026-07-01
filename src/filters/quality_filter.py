@@ -78,7 +78,8 @@ def passes_quality(text: str) -> bool:
     if nav_hits >= 4:
         return False
 
-    if len(PRICE_PATTERN.findall(stripped)) >= 3:
+    unique_prices = set(PRICE_PATTERN.findall(stripped))
+    if len(unique_prices) >= 4:
         return False
 
     return True

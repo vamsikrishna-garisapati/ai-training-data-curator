@@ -23,6 +23,9 @@ jobs:
       - name: Validate Apify actor config (official schemas)
         run: python scripts/validate_apify.py
 
+      - name: Verify Apify daily-check prefill path
+        run: python scripts/verify_daily_check.py
+
   test:
     runs-on: ubuntu-latest
     needs: apify-validate

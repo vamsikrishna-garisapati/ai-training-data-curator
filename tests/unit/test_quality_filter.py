@@ -33,6 +33,33 @@ def test_rejects_too_few_words():
     assert passes_quality("Short nav page with few words here.") is False
 
 
+def test_rejects_many_unique_prices_listing_style():
+    text = (
+        "Books catalog with many products. "
+        + " ".join(f"Item {i} costs £{10 + i}.99 and ships fast." for i in range(8))
+        + " Browse our categories and add items to your basket today."
+    )
+    assert passes_quality(text) is False
+
+
+def test_accepts_product_detail_with_few_prices():
+    text = (
+        "A Light in the Attic product page with a detailed description for readers. "
+        "£51.77\n"
+        "In stock (22 available)\n"
+        "Product Description\n"
+        "It's hard to imagine a world without A Light in the Attic. "
+        "This now-classic collection of poetry and drawings from Shel Silverstein "
+        "celebrates its 20th anniversary with this special edition. "
+        "Silverstein's humorous and creative verse can amuse readers of all ages. "
+        "The book includes memorable poems about childhood, imagination, and play. "
+        "Readers return to these poems again and again for comfort and laughter. "
+        "Teachers and parents often recommend this title for classroom reading lists. "
+        "Each poem invites children to think creatively about everyday situations."
+    )
+    assert passes_quality(text) is True
+
+
 def test_accepts_long_doc_with_repeated_terms():
     """Long technical docs repeat domain terms; threshold scales down with length."""
     from src.filters.quality_filter import LONG_DOC_WORDS, _min_unique_ratio

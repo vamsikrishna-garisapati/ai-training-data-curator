@@ -33,7 +33,14 @@ async def _write_summary(
     max_pages: int,
     final_stats=None,
 ) -> None:
-    await Actor.set_value("#SUMMARY", stats.to_summary(max_pages, final_stats))
+    try:
+        await Actor.set_value("#SUMMARY", stats.to_summary(max_pages, final_stats))
+    except Exception as exc:
+        Actor.log.warning(
+            "Could not write run summary to key-value store (%s). "
+            "This is expected under limited-permission runs.",
+            exc,
+        )
 
 
 async def main() -> None:
