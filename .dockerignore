@@ -1,0 +1,9 @@
+.venv
+storage
+tests
+docs
+*.md
+.git
+__pycache__
+.pytest_cache
+.cursor

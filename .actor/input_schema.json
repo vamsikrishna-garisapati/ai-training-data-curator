@@ -1,0 +1,120 @@
+{
+  "title": "AI Training Data Curator Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "description": "Transform public websites into clean training datasets. Users are responsible for complying with website terms of service and copyright law when crawling content.",
+  "properties": {
+    "startUrls": {
+      "title": "Start URLs",
+      "type": "array",
+      "description": "Seed URLs to begin crawling. Provide at least one start URL or a sitemapUrl.",
+      "editor": "requestListSources",
+      "prefill": [{ "url": "https://books.toscrape.com" }]
+    },
+    "sitemapUrl": {
+      "title": "Sitemap URL",
+      "type": "string",
+      "description": "Optional sitemap.xml URL; URLs are merged with startUrls",
+      "editor": "textfield"
+    },
+    "maxPages": {
+      "title": "Max pages",
+      "type": "integer",
+      "default": 100,
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "maxSitemapUrls": {
+      "title": "Max sitemap URLs",
+      "type": "integer",
+      "description": "Cap merged seed/sitemap URLs before crawling (defaults to maxPages)",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "minTextLength": {
+      "title": "Minimum text length",
+      "type": "integer",
+      "default": 100,
+      "minimum": 0
+    },
+    "language": {
+      "title": "Language filter",
+      "type": "string",
+      "description": "ISO 639-1 code (e.g. en). Leave empty to accept all.",
+      "editor": "textfield"
+    },
+    "deduplicate": {
+      "title": "Remove duplicates",
+      "type": "boolean",
+      "default": true
+    },
+    "maxFingerprints": {
+      "title": "Max dedup fingerprints",
+      "type": "integer",
+      "default": 50000,
+      "minimum": 1,
+      "description": "Maximum SimHash fingerprints kept in memory (FIFO eviction when exceeded)"
+    },
+    "crawlStrategy": {
+      "title": "Crawl strategy",
+      "type": "string",
+      "enum": ["recurse", "seeds-only"],
+      "default": "recurse",
+      "description": "recurse: follow links from seed pages; seeds-only: crawl only seed/sitemap URLs"
+    },
+    "stayWithinDomain": {
+      "title": "Stay within seed domains",
+      "type": "boolean",
+      "default": true,
+      "description": "When recursing, only follow links on seed hostnames"
+    },
+    "includeUrlGlobs": {
+      "title": "Include URL globs",
+      "type": "array",
+      "description": "Optional glob patterns; enqueued URLs must match at least one when set",
+      "editor": "stringList",
+      "items": { "type": "string" }
+    },
+    "excludeUrlGlobs": {
+      "title": "Exclude URL globs",
+      "type": "array",
+      "description": "Optional glob patterns; matching URLs are never enqueued",
+      "editor": "stringList",
+      "items": { "type": "string" }
+    },
+    "maxConcurrency": {
+      "title": "Max concurrency",
+      "type": "integer",
+      "default": 10,
+      "minimum": 1,
+      "maximum": 200,
+      "description": "Maximum number of pages fetched in parallel"
+    },
+    "minRequestDelaySecs": {
+      "title": "Min request delay (seconds)",
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Minimum delay between requests for politeness (0 = no limit)"
+    },
+    "maxDepth": {
+      "title": "Max crawl depth",
+      "type": "integer",
+      "description": "Maximum link hops from seed URLs (0 = seeds only). Leave empty for unlimited depth.",
+      "minimum": 0
+    },
+    "exportRejectedPages": {
+      "title": "Export rejected pages",
+      "type": "boolean",
+      "default": false,
+      "description": "When true, URLs filtered out during processing are written to a separate 'rejected' dataset with filterReason"
+    },
+    "proxyConfiguration": {
+      "title": "Proxy configuration",
+      "type": "object",
+      "description": "Apify proxy settings for blocked or geo-restricted sites",
+      "editor": "proxy"
+    }
+  },
+  "required": []
+}
