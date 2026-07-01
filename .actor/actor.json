@@ -28,13 +28,14 @@
         "overview": {
           "title": "Overview",
           "transformation": {
-            "fields": ["url", "title", "wordCount", "language", "author", "publishedDate"]
+            "fields": ["url", "title", "text", "wordCount", "language", "author", "publishedDate"]
           },
           "display": {
             "component": "table",
             "properties": {
               "url": { "label": "URL", "format": "link" },
-              "title": { "label": "Title" },
+              "title": { "label": "Title", "format": "text" },
+              "text": { "label": "Text", "format": "text" },
               "wordCount": { "label": "Words", "format": "number" },
               "language": { "label": "Language" },
               "author": { "label": "Author" },
