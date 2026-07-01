@@ -13,4 +13,4 @@ def test_build_crawler_sets_max_requests_per_crawl():
 def test_max_pages_default_from_input():
     config = ActorConfig.from_input({})
     crawler = build_crawler(config, None)
-    assert crawler._max_requests_per_crawl == 100  # noqa: SLF001
+    assert crawler._max_requests_per_crawl == 10  # noqa: SLF001

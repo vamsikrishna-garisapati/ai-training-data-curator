@@ -38,7 +38,7 @@ async def _write_summary(
 
 async def main() -> None:
     stats = CrawlStats()
-    max_pages = 100
+    max_pages = 10
     final_stats = None
 
     async with Actor:

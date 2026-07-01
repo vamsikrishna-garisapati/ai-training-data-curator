@@ -2,7 +2,7 @@
   "title": "AI Training Data Curator Input",
   "type": "object",
   "schemaVersion": 1,
-  "description": "Transform public websites into clean training datasets. Users are responsible for complying with website terms of service and copyright law when crawling content.",
+  "description": "Turn public websites into clean LLM training datasets for fine-tuning and RAG. Add your URLs, set a page limit, and download structured text data as JSON, JSONL, or CSV.",
   "properties": {
     "startUrls": {
       "title": "Start URLs",
@@ -22,7 +22,8 @@
     "maxPages": {
       "title": "Max pages",
       "type": "integer",
-      "default": 100,
+      "description": "Maximum number of pages to crawl and export.",
+      "default": 10,
       "prefill": 5,
       "minimum": 1,
       "maximum": 100000
@@ -37,6 +38,7 @@
     "minTextLength": {
       "title": "Minimum text length",
       "type": "integer",
+      "description": "Minimum extracted text length in characters; shorter pages are filtered out.",
       "default": 100,
       "prefill": 50,
       "minimum": 0
@@ -50,6 +52,7 @@
     "deduplicate": {
       "title": "Remove duplicates",
       "type": "boolean",
+      "description": "When true, near-duplicate pages are removed using SimHash fingerprinting.",
       "default": true
     },
     "maxFingerprints": {

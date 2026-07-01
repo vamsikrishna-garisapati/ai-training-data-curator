@@ -9,7 +9,7 @@ def test_from_input_defaults():
     config = ActorConfig.from_input({})
     assert config.start_urls == []
     assert config.sitemap_url is None
-    assert config.max_pages == 100
+    assert config.max_pages == 10
     assert config.min_text_length == 100
     assert config.language is None
     assert config.deduplicate is True
@@ -20,7 +20,7 @@ def test_from_input_defaults():
     assert config.include_url_globs == []
     assert config.exclude_url_globs == []
     assert config.max_sitemap_urls is None
-    assert config.effective_max_sitemap_urls == 100
+    assert config.effective_max_sitemap_urls == 10
     assert config.min_request_delay_secs == 0
     assert config.max_fingerprints == 50_000
     assert config.max_depth is None
@@ -63,12 +63,12 @@ def test_from_input_empty_language_becomes_none():
 
 def test_from_input_none_input():
     config = ActorConfig.from_input(None)
-    assert config.max_pages == 100
+    assert config.max_pages == 10
 
 
 @pytest.mark.parametrize(
     "max_pages,expected",
-    [(0, 1), (-1, 1), (100_001, 100_000), ("50", 100)],
+    [(0, 1), (-1, 1), (100_001, 100_000), ("50", 10)],
 )
 def test_from_input_coerces_invalid_max_pages(max_pages, expected):
     config = ActorConfig.from_input({"maxPages": max_pages})

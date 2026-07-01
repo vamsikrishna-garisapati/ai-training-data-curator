@@ -121,8 +121,8 @@ class ActorConfig:
             sitemap_url = None
 
         max_pages = _coerce_int(
-            raw.get("maxPages", 100),
-            default=100,
+            raw.get("maxPages", 10),
+            default=10,
             minimum=1,
             maximum=100_000,
             field_name="maxPages",

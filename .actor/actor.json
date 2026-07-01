@@ -2,9 +2,9 @@
   "actorSpecification": 1,
   "name": "ai-training-data-curator",
   "title": "AI Training Data Curator",
-  "description": "Crawl public websites and export clean, structured text datasets for LLM fine-tuning, RAG, and machine learning. Extracts title, body text, metadata, filters by language and quality, deduplicates near-duplicates, and outputs JSONL/CSV via Apify dataset.",
-  "seoTitle": "AI Training Data Curator — Web to LLM Dataset",
-  "seoDescription": "Turn any public website into a clean training dataset for LLM fine-tuning and RAG. Crawl, extract, filter, deduplicate, and export structured JSON with url, title, text, language, and word count.",
+  "description": "Turn any public website into a clean LLM training dataset. Crawl docs, blogs, and help centers; extract readable text; filter by language and quality; remove duplicates; export JSON, JSONL, or CSV for fine-tuning, RAG, and AI workflows.",
+  "seoTitle": "Website to LLM Dataset | AI Training Data Tool",
+  "seoDescription": "Crawl public websites and export clean LLM training data for fine-tuning and RAG. Auto-extract text, remove duplicates, download JSON or CSV. No code needed.",
   "version": "0.1",
   "buildTag": "latest",
   "dockerfile": "../Dockerfile",
@@ -17,8 +17,7 @@
     "timeoutSecs": 3600
   },
   "meta": {
-    "origin": "AI Training Data Curator",
-    "license": "Apache-2.0"
+    "origin": "AI Training Data Curator"
   },
   "storages": {
     "dataset": {

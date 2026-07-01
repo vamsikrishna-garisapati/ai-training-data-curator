@@ -82,7 +82,7 @@ async def test_main_coerces_invalid_input_and_runs():
 
     mock_build.assert_called_once()
     config = mock_build.call_args[0][0]
-    assert config.max_pages == 100
+    assert config.max_pages == 10
     mock_actor.fail.assert_not_called()
 
 
