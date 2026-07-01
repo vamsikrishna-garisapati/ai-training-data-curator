@@ -1,4 +1,5 @@
 {
+  "$schema": "https://apify-projects.github.io/actor-json-schemas/actor.json?v=0.7",
   "actorSpecification": 1,
   "name": "ai-training-data-curator",
   "title": "AI Training Data Curator",

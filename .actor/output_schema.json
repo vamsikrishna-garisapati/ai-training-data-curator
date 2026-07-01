@@ -1,61 +1,25 @@
 {
+  "$schema": "https://apify-projects.github.io/actor-json-schemas/output.json?v=0.7",
+  "actorOutputSchemaVersion": 1,
   "title": "AI Training Data Curator Output",
-  "type": "object",
-  "schemaVersion": 1,
   "properties": {
-    "url": {
-      "title": "URL",
+    "dataset": {
       "type": "string",
-      "description": "Canonical page URL"
+      "title": "Training pages",
+      "description": "Crawled pages with url, title, text, language, word count, author, and published date.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
     },
-    "title": {
-      "title": "Title",
+    "rejected": {
       "type": "string",
-      "description": "Page title"
+      "title": "Rejected pages",
+      "description": "Pages filtered out during crawling (only when Export rejected pages is enabled).",
+      "template": "{{storages.datasets.rejected.apiUrl}}/items"
     },
-    "text": {
-      "title": "Text",
+    "summary": {
       "type": "string",
-      "description": "Extracted body text"
-    },
-    "author": {
-      "title": "Author",
-      "type": "string",
-      "description": "Author if detected"
-    },
-    "publishedDate": {
-      "title": "Published Date",
-      "type": "string",
-      "description": "Publication date if detected"
-    },
-    "language": {
-      "title": "Language",
-      "type": "string",
-      "description": "Detected ISO 639-1 language code"
-    },
-    "wordCount": {
-      "title": "Word Count",
-      "type": "integer",
-      "description": "Number of words in extracted text"
-    }
-  },
-  "views": {
-    "overview": {
-      "title": "Overview",
-      "transformation": {
-        "fields": ["url", "title", "wordCount", "language", "author", "publishedDate"]
-      },
-      "display": {
-        "component": "table",
-        "properties": {
-          "url": { "label": "URL", "format": "link" },
-          "title": { "label": "Title" },
-          "wordCount": { "label": "Words", "format": "number" },
-          "language": { "label": "Language" },
-          "author": { "label": "Author" },
-          "publishedDate": { "label": "Published" }
-        }
-      }
+      "title": "Run summary",
+      "description": "Crawl statistics: pages crawled, saved, filtered, and failed.",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/%23SUMMARY"
     }
   }
 }

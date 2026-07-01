@@ -7,8 +7,25 @@ on:
     branches: [main, master]
 
 jobs:
+  apify-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install validation dependencies
+        run: pip install jsonschema
+
+      - name: Validate Apify actor config (official schemas)
+        run: python scripts/validate_apify.py
+
   test:
     runs-on: ubuntu-latest
+    needs: apify-validate
     steps:
       - uses: actions/checkout@v4
 
@@ -25,26 +42,9 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    needs: apify-validate
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate actor.json
-        run: |
-          python -c "
-          import json, pathlib, sys
-          data = json.loads(pathlib.Path('.actor/actor.json').read_text())
-          required = ('actorSpecification', 'name', 'version', 'dockerfile')
-          missing = [k for k in required if k not in data]
-          if missing:
-              print('Missing actor.json keys:', missing)
-              sys.exit(1)
-          if data['actorSpecification'] != 1:
-              sys.exit('actorSpecification must be 1')
-          parts = data['version'].split('.')
-          if len(parts) != 2 or not all(p.isdigit() for p in parts):
-              sys.exit(f\"Invalid version format: {data['version']} (expected [Number].[Number])\")
-          print('actor.json OK')
-          "
 
       - name: Build Docker image
         run: docker build -t ai-training-data-curator .
