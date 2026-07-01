@@ -66,31 +66,37 @@ def test_from_input_none_input():
     assert config.max_pages == 100
 
 
-@pytest.mark.parametrize("max_pages", [0, -1, 100_001, "50"])
-def test_from_input_invalid_max_pages(max_pages):
-    with pytest.raises(ValueError, match="maxPages"):
-        ActorConfig.from_input({"maxPages": max_pages})
+@pytest.mark.parametrize(
+    "max_pages,expected",
+    [(0, 1), (-1, 1), (100_001, 100_000), ("50", 100)],
+)
+def test_from_input_coerces_invalid_max_pages(max_pages, expected):
+    config = ActorConfig.from_input({"maxPages": max_pages})
+    assert config.max_pages == expected
 
 
-@pytest.mark.parametrize("min_len", [-1, "100"])
-def test_from_input_invalid_min_text_length(min_len):
-    with pytest.raises(ValueError, match="minTextLength"):
-        ActorConfig.from_input({"minTextLength": min_len})
+@pytest.mark.parametrize(
+    "min_len,expected",
+    [(-1, 0), ("100", 100)],
+)
+def test_from_input_coerces_invalid_min_text_length(min_len, expected):
+    config = ActorConfig.from_input({"minTextLength": min_len})
+    assert config.min_text_length == expected
 
 
-def test_from_input_invalid_deduplicate():
-    with pytest.raises(ValueError, match="deduplicate"):
-        ActorConfig.from_input({"deduplicate": "yes"})
+def test_from_input_coerces_invalid_deduplicate():
+    config = ActorConfig.from_input({"deduplicate": "yes"})
+    assert config.deduplicate is True
 
 
-def test_from_input_invalid_max_concurrency():
-    with pytest.raises(ValueError, match="maxConcurrency"):
-        ActorConfig.from_input({"maxConcurrency": 0})
+def test_from_input_coerces_invalid_max_concurrency():
+    config = ActorConfig.from_input({"maxConcurrency": 0})
+    assert config.max_concurrency == 1
 
 
-def test_from_input_invalid_crawl_strategy():
-    with pytest.raises(ValueError, match="crawlStrategy"):
-        ActorConfig.from_input({"crawlStrategy": "breadth-first"})
+def test_from_input_coerces_invalid_crawl_strategy():
+    config = ActorConfig.from_input({"crawlStrategy": "breadth-first"})
+    assert config.crawl_strategy == "recurse"
 
 
 def test_from_input_empty_sitemap_becomes_none():
@@ -107,7 +113,7 @@ def test_from_input_parses_new_fields():
     config = ActorConfig.from_input(
         {
             "stayWithinDomain": False,
-            "includeUrlGlobs": ["https://example.com/**"],
+            "includeUrlGlobs": ["https://books.toscrape.com/**"],
             "excludeUrlGlobs": ["**/*.pdf"],
             "maxSitemapUrls": 25,
             "minRequestDelaySecs": 1.5,
@@ -117,7 +123,7 @@ def test_from_input_parses_new_fields():
         }
     )
     assert config.stay_within_domain is False
-    assert config.include_url_globs == ["https://example.com/**"]
+    assert config.include_url_globs == ["https://books.toscrape.com/**"]
     assert config.exclude_url_globs == ["**/*.pdf"]
     assert config.max_sitemap_urls == 25
     assert config.effective_max_sitemap_urls == 25
@@ -128,18 +134,18 @@ def test_from_input_parses_new_fields():
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    "field,value,attr,expected",
     [
-        ("stayWithinDomain", "yes"),
-        ("includeUrlGlobs", "bad"),
-        ("excludeUrlGlobs", {}),
-        ("maxSitemapUrls", 0),
-        ("minRequestDelaySecs", -1),
-        ("maxFingerprints", 0),
-        ("maxDepth", -1),
-        ("exportRejectedPages", "yes"),
+        ("stayWithinDomain", "yes", "stay_within_domain", True),
+        ("includeUrlGlobs", "bad", "include_url_globs", []),
+        ("excludeUrlGlobs", {}, "exclude_url_globs", []),
+        ("maxSitemapUrls", 0, "max_sitemap_urls", None),
+        ("minRequestDelaySecs", -1, "min_request_delay_secs", 0.0),
+        ("maxFingerprints", 0, "max_fingerprints", 1),
+        ("maxDepth", -1, "max_depth", None),
+        ("exportRejectedPages", "yes", "export_rejected_pages", False),
     ],
 )
-def test_from_input_invalid_new_fields(field, value):
-    with pytest.raises(ValueError):
-        ActorConfig.from_input({field: value})
+def test_from_input_coerces_invalid_new_fields(field, value, attr, expected):
+    config = ActorConfig.from_input({field: value})
+    assert getattr(config, attr) == expected

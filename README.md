@@ -167,6 +167,9 @@ Input → Seed URLs (+ Sitemap) → BeautifulSoupCrawler
 
 ## Reliability
 
+- **Apify daily checks** — Prefill input crawls a single product page (`maxPages: 5`, `seeds-only`) to finish within 5 minutes with a non-empty dataset ([Apify testing docs](https://docs.apify.com/platform/actors/publishing/testing))
+- **Graceful input** — Invalid fields are coerced to safe defaults; runs do not fail on bad types
+- **Default seed URL** — Empty `startUrls` falls back to a known public demo page
 - **Retries** — Crawlee automatically retries failed requests (default: 3 retries)
 - **Resume** — Interrupted runs can be resumed via Apify platform features
 - **Robots.txt** — Enabled by default (`respect_robots_txt_file=True`)
@@ -185,7 +188,7 @@ Input → Seed URLs (+ Sitemap) → BeautifulSoupCrawler
 - [Technical Design (TDD)](02_TDD_Technical_Design_Document.md)
 - [API Integration Spec](04_API_Integration_Specification.md)
 - [Non-Functional Requirements](06_Non_Functional_Requirements.md)
-- [Design Spec](docs/superpowers/specs/2026-07-01-ai-data-curator-design.md)
+- [AGENTS.md](AGENTS.md) — machine-readable guide for AI agents and automation
 
 ## License
 

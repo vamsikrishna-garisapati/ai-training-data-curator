@@ -6,6 +6,10 @@ import re
 
 MIN_WORDS = 20
 MIN_UNIQUE_RATIO = 0.35
+MIN_UNIQUE_RATIO_LONG = 0.30
+MIN_UNIQUE_RATIO_VERY_LONG = 0.25
+LONG_DOC_WORDS = 200
+VERY_LONG_DOC_WORDS = 500
 MAX_SHORT_LINE_RATIO = 0.6
 SHORT_LINE_CHARS = 25
 
@@ -38,6 +42,15 @@ PRICE_PATTERN = re.compile(
 )
 
 
+def _min_unique_ratio(word_count: int) -> float:
+    """Long documents repeat domain terms; allow a lower unique-word ratio."""
+    if word_count >= VERY_LONG_DOC_WORDS:
+        return MIN_UNIQUE_RATIO_VERY_LONG
+    if word_count >= LONG_DOC_WORDS:
+        return MIN_UNIQUE_RATIO_LONG
+    return MIN_UNIQUE_RATIO
+
+
 def passes_quality(text: str) -> bool:
     """Return True if text looks like article content rather than nav/listing chrome."""
     stripped = text.strip()
@@ -49,7 +62,7 @@ def passes_quality(text: str) -> bool:
         return False
 
     unique_ratio = len({word.lower() for word in words}) / len(words)
-    if unique_ratio < MIN_UNIQUE_RATIO:
+    if unique_ratio < _min_unique_ratio(len(words)):
         return False
 
     lines = [line.strip() for line in stripped.splitlines() if line.strip()]

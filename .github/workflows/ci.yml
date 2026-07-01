@@ -22,3 +22,37 @@ jobs:
 
       - name: Run tests with coverage
         run: pytest --cov=src --cov-report=term-missing --cov-fail-under=80
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate actor.json
+        run: |
+          python -c "
+          import json, pathlib, sys
+          data = json.loads(pathlib.Path('.actor/actor.json').read_text())
+          required = ('actorSpecification', 'name', 'version', 'dockerfile')
+          missing = [k for k in required if k not in data]
+          if missing:
+              print('Missing actor.json keys:', missing)
+              sys.exit(1)
+          if data['actorSpecification'] != 1:
+              sys.exit('actorSpecification must be 1')
+          parts = data['version'].split('.')
+          if len(parts) != 2 or not all(p.isdigit() for p in parts):
+              sys.exit(f\"Invalid version format: {data['version']} (expected [Number].[Number])\")
+          print('actor.json OK')
+          "
+
+      - name: Build Docker image
+        run: docker build -t ai-training-data-curator .
+
+      - name: Smoke test container imports
+        run: |
+          docker run --rm ai-training-data-curator python -c "
+          import apify, crawlee, trafilatura
+          from src.main import main
+          print('container imports OK')
+          "

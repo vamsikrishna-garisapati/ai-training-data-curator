@@ -9,7 +9,9 @@
       "type": "array",
       "description": "Seed URLs to begin crawling. Provide at least one start URL or a sitemapUrl.",
       "editor": "requestListSources",
-      "prefill": [{ "url": "https://books.toscrape.com" }]
+      "prefill": [
+        { "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html" }
+      ]
     },
     "sitemapUrl": {
       "title": "Sitemap URL",
@@ -21,6 +23,7 @@
       "title": "Max pages",
       "type": "integer",
       "default": 100,
+      "prefill": 5,
       "minimum": 1,
       "maximum": 100000
     },
@@ -35,6 +38,7 @@
       "title": "Minimum text length",
       "type": "integer",
       "default": 100,
+      "prefill": 50,
       "minimum": 0
     },
     "language": {
@@ -60,6 +64,7 @@
       "type": "string",
       "enum": ["recurse", "seeds-only"],
       "default": "recurse",
+      "prefill": "seeds-only",
       "description": "recurse: follow links from seed pages; seeds-only: crawl only seed/sitemap URLs"
     },
     "stayWithinDomain": {

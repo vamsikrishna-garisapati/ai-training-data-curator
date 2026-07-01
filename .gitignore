@@ -9,4 +9,5 @@ storage/
 .apify/
 *.log
 .DS_Store
+.cursor/
 .env

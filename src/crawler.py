@@ -83,10 +83,17 @@ async def _push_rejected(
     url: str,
     filter_reason: str,
 ) -> None:
-    await context.push_data(
-        {"url": url, "filterReason": filter_reason},
-        dataset_name=REJECTED_DATASET_NAME,
-    )
+    try:
+        await context.push_data(
+            {"url": url, "filterReason": filter_reason},
+            dataset_name=REJECTED_DATASET_NAME,
+        )
+    except Exception as exc:
+        context.log.warning(
+            "Failed to push rejected record for %s: %s",
+            url,
+            exc,
+        )
 
 
 def build_crawler(
@@ -117,37 +124,46 @@ def build_crawler(
 
     @crawler.router.default_handler
     async def request_handler(context: BeautifulSoupCrawlingContext) -> None:
-        if stats is not None:
-            stats.crawled += 1
+        try:
+            if stats is not None:
+                stats.crawled += 1
 
-        url = context.request.url
-        current_depth = get_request_depth(context.request.user_data)
+            url = context.request.url
+            current_depth = get_request_depth(context.request.user_data)
 
-        content_type = ""
-        if context.http_response is not None:
-            content_type = context.http_response.headers.get("content-type", "")
+            content_type = ""
+            if context.http_response is not None:
+                content_type = context.http_response.headers.get("content-type", "")
 
-        should_extract = is_html_content_type(content_type)
-        if should_extract:
-            html = await _get_html(context)
-            record, reject_reason = process_page(
-                html, url, config, deduplicator, stats
-            )
-            if record:
-                await context.push_data(record)
-                if stats is not None:
-                    stats.saved += 1
-            elif config.export_rejected_pages and reject_reason:
-                await _push_rejected(context, url, reject_reason)
-        elif config.export_rejected_pages:
-            await _push_rejected(context, url, FILTER_REASON_NON_HTML)
+            should_extract = is_html_content_type(content_type)
+            if should_extract:
+                html = await _get_html(context)
+                record, reject_reason = process_page(
+                    html, url, config, deduplicator, stats
+                )
+                if record:
+                    await context.push_data(record)
+                    if stats is not None:
+                        stats.saved += 1
+                elif config.export_rejected_pages and reject_reason:
+                    await _push_rejected(context, url, reject_reason)
+            elif config.export_rejected_pages:
+                await _push_rejected(context, url, FILTER_REASON_NON_HTML)
 
-        if config.crawl_strategy == "recurse" and should_follow_links(
-            current_depth, config.max_depth
-        ):
-            await context.enqueue_links(
-                **enqueue_kwargs,
-                transform_request_function=depth_transform_request(current_depth),
+            if config.crawl_strategy == "recurse" and should_follow_links(
+                current_depth, config.max_depth
+            ):
+                await context.enqueue_links(
+                    **enqueue_kwargs,
+                    transform_request_function=depth_transform_request(current_depth),
+                )
+        except Exception as exc:
+            if stats is not None:
+                stats.failed += 1
+            crawler.log.exception(
+                "Handler error for url=%s: %s",
+                context.request.url,
+                exc,
             )
 
     @crawler.failed_request_handler

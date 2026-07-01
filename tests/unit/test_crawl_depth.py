@@ -29,12 +29,14 @@ def test_should_follow_links_respects_max():
 
 
 def test_build_seed_requests_set_depth_zero():
-    requests = build_seed_requests(["https://example.com/a", "https://example.com/b"])
+    requests = build_seed_requests(
+        ["https://books.toscrape.com/a", "https://books.toscrape.com/b"]
+    )
     assert len(requests) == 2
     assert all(get_request_depth(r.user_data) == 0 for r in requests)
 
 
 def test_depth_transform_increments_child_depth():
     transform = depth_transform_request(1)
-    result = transform({"url": "https://example.com/child"})
+    result = transform({"url": "https://books.toscrape.com/child"})
     assert result["user_data"][DEPTH_USER_DATA_KEY] == 2

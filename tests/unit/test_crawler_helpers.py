@@ -6,6 +6,7 @@ import pytest
 
 from src.config import ActorConfig
 from src.crawler import _get_html, build_crawler, is_html_content_type
+from src.stats import CrawlStats
 
 
 @pytest.mark.asyncio
@@ -163,3 +164,27 @@ async def test_request_handler_skips_enqueue_at_max_depth(monkeypatch):
     await handler(context)
 
     enqueue.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_request_handler_survives_handler_exception(monkeypatch):
+    config = ActorConfig.from_input({"startUrls": [{"url": "https://books.toscrape.com"}]})
+    stats = CrawlStats()
+
+    context = MagicMock()
+    context.request.url = "https://books.toscrape.com/error"
+    context.request.user_data = {"depth": 0}
+    context.http_response = MagicMock()
+    context.http_response.headers = {"content-type": "text/html"}
+    context.enqueue_links = AsyncMock()
+    context.push_data = AsyncMock()
+
+    crawler = build_crawler(config, None, stats=stats, allowed_hosts={"books.toscrape.com"})
+    handler = crawler.router._default_handler
+    assert handler is not None
+
+    monkeypatch.setattr("src.crawler._get_html", AsyncMock(side_effect=RuntimeError("boom")))
+
+    await handler(context)
+
+    assert stats.failed == 1

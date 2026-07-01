@@ -13,16 +13,16 @@ from src.urls import (
 def test_derive_allowed_hosts():
     urls = [
         "https://Books.Toscrape.com/page",
-        "http://example.com:8080/path",
+        "http://quotes.toscrape.com:8080/path",
         "not-a-url",
     ]
-    assert derive_allowed_hosts(urls) == {"books.toscrape.com", "example.com"}
+    assert derive_allowed_hosts(urls) == {"books.toscrape.com", "quotes.toscrape.com"}
 
 
 def test_cap_seed_urls():
-    urls = [f"https://example.com/{index}" for index in range(10)]
+    urls = [f"https://books.toscrape.com/page{index}" for index in range(10)]
     assert len(cap_seed_urls(urls, 3)) == 3
-    assert cap_seed_urls(urls, 3)[0] == "https://example.com/0"
+    assert cap_seed_urls(urls, 3)[0] == "https://books.toscrape.com/page0"
 
 
 def test_parse_url_globs_skips_empty():

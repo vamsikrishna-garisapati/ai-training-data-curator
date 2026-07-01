@@ -62,11 +62,28 @@ async def test_main_merges_sitemap_urls():
 
 
 @pytest.mark.asyncio
-async def test_main_warns_when_no_seed_urls():
-    with _patch_actor({})[0], patch("src.main.build_crawler") as mock_build:
+async def test_main_uses_default_url_when_no_seeds():
+    mock_crawler = AsyncMock()
+    with _patch_actor({})[0], patch("src.main.build_crawler", return_value=mock_crawler) as mock_build:
         await main()
 
-    mock_build.assert_not_called()
+    mock_build.assert_called_once()
+    assert _seed_urls_from_run_call(mock_crawler) == [
+        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_main_coerces_invalid_input_and_runs():
+    mock_crawler = AsyncMock()
+    actor_patch, mock_actor = _patch_actor({"maxPages": "invalid", "startUrls": [{"url": "https://books.toscrape.com"}]})
+    with actor_patch, patch("src.main.build_crawler", return_value=mock_crawler) as mock_build:
+        await main()
+
+    mock_build.assert_called_once()
+    config = mock_build.call_args[0][0]
+    assert config.max_pages == 100
+    mock_actor.fail.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -82,13 +99,16 @@ async def test_main_skips_deduplicator_when_disabled():
 
 
 @pytest.mark.asyncio
-async def test_main_fails_on_invalid_input():
-    actor_patch, mock_actor = _patch_actor({"maxPages": "invalid"})
-    with actor_patch:
+async def test_main_always_writes_summary_even_on_error():
+    actor_patch, mock_actor = _patch_actor({"startUrls": [{"url": "https://books.toscrape.com"}]})
+    with actor_patch, patch(
+        "src.main.build_crawler",
+        side_effect=RuntimeError("boom"),
+    ):
         await main()
 
-    mock_actor.fail.assert_awaited_once()
-    assert "Invalid input" in mock_actor.fail.call_args.kwargs["status_message"]
+    mock_actor.set_value.assert_awaited_once()
+    assert mock_actor.set_value.call_args[0][0] == "#SUMMARY"
 
 
 @pytest.mark.asyncio

@@ -8,6 +8,7 @@ import httpx
 from apify import Actor
 
 from src.config import ActorConfig
+from src.constants import DEFAULT_START_URL
 from src.crawler import build_crawler
 from src.dedup.simhash_dedup import Deduplicator
 from src.crawl_depth import build_seed_requests
@@ -27,65 +28,104 @@ def _dedupe_urls(urls: list[str]) -> list[str]:
     return result
 
 
+async def _write_summary(
+    stats: CrawlStats,
+    max_pages: int,
+    final_stats=None,
+) -> None:
+    await Actor.set_value("#SUMMARY", stats.to_summary(max_pages, final_stats))
+
+
 async def main() -> None:
+    stats = CrawlStats()
+    max_pages = 100
+    final_stats = None
+
     async with Actor:
-        raw = await Actor.get_input() or {}
         try:
+            raw = await Actor.get_input() or {}
             config = ActorConfig.from_input(raw)
-        except ValueError as exc:
-            await Actor.fail(status_message=f"Invalid input: {exc}")
-            return
+            max_pages = config.max_pages
 
-        deduplicator = (
-            Deduplicator(max_fingerprints=config.max_fingerprints)
-            if config.deduplicate
-            else None
-        )
-        stats = CrawlStats()
+            deduplicator = (
+                Deduplicator(max_fingerprints=config.max_fingerprints)
+                if config.deduplicate
+                else None
+            )
 
-        seed_urls = list(config.start_urls)
-        if config.sitemap_url:
-            try:
-                async with httpx.AsyncClient() as client:
-                    seed_urls.extend(
-                        await fetch_sitemap_urls(config.sitemap_url, client)
+            seed_urls = list(config.start_urls)
+            if config.sitemap_url:
+                try:
+                    async with httpx.AsyncClient(timeout=30.0) as client:
+                        seed_urls.extend(
+                            await fetch_sitemap_urls(config.sitemap_url, client)
+                        )
+                except httpx.HTTPError as exc:
+                    Actor.log.warning(
+                        "Failed to fetch sitemap %s: %s. Continuing with startUrls only.",
+                        config.sitemap_url,
+                        exc,
                     )
-            except httpx.HTTPError as exc:
+                except Exception as exc:
+                    Actor.log.warning(
+                        "Unexpected sitemap error for %s: %s. Continuing with startUrls only.",
+                        config.sitemap_url,
+                        exc,
+                    )
+
+            seed_urls = _dedupe_urls(seed_urls)
+            seed_urls = cap_seed_urls(seed_urls, config.effective_max_sitemap_urls)
+
+            if not seed_urls:
                 Actor.log.warning(
-                    "Failed to fetch sitemap %s: %s. Continuing with startUrls only.",
-                    config.sitemap_url,
-                    exc,
+                    "No seed URLs provided; using default start URL %s.",
+                    DEFAULT_START_URL,
+                )
+                seed_urls = [DEFAULT_START_URL]
+
+            allowed_hosts = derive_allowed_hosts(seed_urls)
+
+            proxy_configuration = None
+            if config.proxy_configuration is not None:
+                try:
+                    proxy_configuration = await Actor.create_proxy_configuration(
+                        actor_proxy_input=config.proxy_configuration,
+                    )
+                except Exception as exc:
+                    Actor.log.warning(
+                        "Proxy configuration failed (%s); continuing without proxy.",
+                        exc,
+                    )
+
+            crawler = build_crawler(
+                config,
+                deduplicator,
+                proxy_configuration,
+                stats,
+                allowed_hosts,
+            )
+            final_stats = await crawler.run(build_seed_requests(seed_urls))
+
+            if stats.saved == 0:
+                Actor.log.warning(
+                    "Run finished with zero saved records (crawled=%d failed=%d). "
+                    "Check filters, seed URLs, or site availability.",
+                    stats.crawled,
+                    stats.failed,
                 )
 
-        seed_urls = _dedupe_urls(seed_urls)
-        seed_urls = cap_seed_urls(seed_urls, config.effective_max_sitemap_urls)
-
-        if not seed_urls:
-            Actor.log.warning("No seed URLs provided; nothing to crawl.")
-            return
-
-        allowed_hosts = derive_allowed_hosts(seed_urls)
-
-        proxy_configuration = await Actor.create_proxy_configuration(
-            actor_proxy_input=config.proxy_configuration,
-        )
-        crawler = build_crawler(
-            config,
-            deduplicator,
-            proxy_configuration,
-            stats,
-            allowed_hosts,
-        )
-        final_stats = await crawler.run(build_seed_requests(seed_urls))
-
-        await Actor.set_value("#SUMMARY", stats.to_summary(config.max_pages, final_stats))
-        Actor.log.info(
-            "Crawl complete. Crawled=%d saved=%d failed=%d maxPages=%d",
-            stats.crawled,
-            stats.saved,
-            stats.failed,
-            config.max_pages,
-        )
+            Actor.log.info(
+                "Crawl complete. Crawled=%d saved=%d failed=%d maxPages=%d",
+                stats.crawled,
+                stats.saved,
+                stats.failed,
+                config.max_pages,
+            )
+        except Exception as exc:
+            Actor.log.exception("Unhandled error during crawl: %s", exc)
+            stats.failed += 1
+        finally:
+            await _write_summary(stats, max_pages, final_stats)
 
 
 if __name__ == "__main__":
