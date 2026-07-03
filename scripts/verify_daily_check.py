@@ -26,6 +26,8 @@ def main() -> int:
         "minTextLength": props["minTextLength"]["prefill"],
         "crawlStrategy": props["crawlStrategy"]["prefill"],
     }
+    if "deduplicate" in props and "prefill" in props["deduplicate"]:
+        prefill["deduplicate"] = props["deduplicate"]["prefill"]
 
     config = ActorConfig.from_input(prefill)
     url = prefill_urls[0]["url"]

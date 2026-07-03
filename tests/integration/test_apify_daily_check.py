@@ -7,16 +7,17 @@ from tests.smoke_html import APIFY_DAILY_CHECK_HTML
 
 PREFILL_INPUT = {
     "startUrls": [{"url": APIFY_SMOKE_START_URL}],
-    "maxPages": 5,
+    "maxPages": 1,
     "minTextLength": 50,
     "crawlStrategy": "seeds-only",
+    "deduplicate": False,
 }
 
 
 def test_prefill_input_matches_input_schema_prefill():
     config = ActorConfig.from_input(PREFILL_INPUT)
     assert config.start_urls == [APIFY_SMOKE_START_URL]
-    assert config.max_pages == 5
+    assert config.max_pages == 1
     assert config.min_text_length == 50
     assert config.crawl_strategy == "seeds-only"
 

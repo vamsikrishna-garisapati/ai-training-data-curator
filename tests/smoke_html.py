@@ -1,26 +1,24 @@
 """Minimal synthetic HTML for daily-check pipeline tests. Not scraped third-party content."""
 
 APIFY_DAILY_CHECK_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>A Light in the Attic</title>
-</head>
-<body>
-  <article>
-    <h1>A Light in the Attic</h1>
+<html>
+  <head>
+    <title>Herman Melville - Moby-Dick</title>
+  </head>
+  <body>
+    <h1>Herman Melville - Moby-Dick</h1>
     <p>
-      It is hard to imagine a world without A Light in the Attic. This now-classic
-      collection of poetry and drawings celebrates its anniversary with this edition.
-      Silverstein's humorous and creative verse can amuse readers of all ages while
-      introducing children to poetry through playful language and memorable imagery.
-      The book includes memorable poems about childhood, imagination, and play that
-      families return to again and again. Teachers and parents often recommend this
-      title for classroom reading lists because the poems are short, accessible, and
-      engaging for young readers. Each poem invites children to think creatively about
-      everyday situations, friendships, and emotions in ways that feel honest and fun.
+      Availing himself of the mild, summer-cool weather that now reigned in these latitudes,
+      and in preparation for the peculiarly active pursuits shortly to be anticipated, Perth,
+      the begrimed, blistered old blacksmith, had not removed his portable forge to the hold
+      again, after concluding his contributory work for Ahab's leg, but still retained it on
+      deck, fast lashed to ringbolts by the foremast. Often he would be surrounded by an eager
+      circle, all waiting to be served; holding boat-spades, pike-heads, harpoons, and lances,
+      and jealously watching his every sooty movement, as he toiled. Nevertheless, this old
+      man's was a patient hammer wielded by a patient arm. No murmur, no impatience, no
+      petulance did come from him. Silent, slow, and solemn; bowing over still further his
+      chronically broken back, he toiled away, as if toil were life itself.
     </p>
-  </article>
-</body>
+  </body>
 </html>
 """

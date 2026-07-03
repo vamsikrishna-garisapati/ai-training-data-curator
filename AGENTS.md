@@ -34,7 +34,7 @@ Pipeline: **crawl → extract text (Trafilatura) → filter → deduplicate (Sim
 
 ```json
 {
-  "startUrls": [{ "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html" }],
+  "startUrls": [{ "url": "https://httpbin.org/html" }],
   "maxPages": 10,
   "crawlStrategy": "seeds-only",
   "minTextLength": 50,
@@ -58,7 +58,7 @@ Each item:
 }
 ```
 
-Run summary is stored in key-value store key `#SUMMARY`.
+Run summary is stored in key-value store key `SUMMARY`.
 
 ## Key input fields
 

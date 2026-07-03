@@ -37,6 +37,28 @@ You get training-ready text, not raw HTML.
 
 ---
 
+## Ready-made tasks (Apify Console)
+
+Create these public tasks under **Actor → Tasks** to improve Store discoverability:
+
+| Task | Input highlights |
+|------|------------------|
+| **Quick demo — single page** | `maxPages: 1`, `seeds-only`, `https://httpbin.org/html` |
+| **Documentation crawl** | `recurse`, `stayWithinDomain: true`, `language: en`, `maxPages: 100` |
+| **Blog archive from sitemap** | `sitemapUrl` + `maxPages: 500`, `deduplicate: true` |
+
+---
+
+## Store monetization (Apify Console)
+
+Under **Actor → Monetization**:
+
+1. Turn **off** “Pay per event + platform usage” so users see predictable pricing.
+2. Set per-page event price to cover platform cost (current runs are ~$0.0005/page compute + margin).
+3. Enable **Store discounts** with ~10% step-down per tier (Free → Bronze → Silver → Gold).
+
+---
+
 ## What you get (output)
 
 Each saved page becomes one dataset record:
@@ -93,7 +115,7 @@ Each saved page becomes one dataset record:
   "language": "en",
   "minTextLength": 200,
   "deduplicate": true,
-  "crawlStrategy": "recurse",
+  "crawlStrategy": "seeds-only",
   "stayWithinDomain": true
 }
 ```

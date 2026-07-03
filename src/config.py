@@ -158,14 +158,14 @@ class ActorConfig:
             field_name="maxConcurrency",
         )
 
-        crawl_strategy = raw.get("crawlStrategy", "recurse")
+        crawl_strategy = raw.get("crawlStrategy", "seeds-only")
         if crawl_strategy not in CRAWL_STRATEGIES:
             logger.warning(
-                "crawlStrategy must be one of %s; using 'recurse' (got %r).",
+                "crawlStrategy must be one of %s; using 'seeds-only' (got %r).",
                 CRAWL_STRATEGIES,
                 crawl_strategy,
             )
-            crawl_strategy = "recurse"
+            crawl_strategy = "seeds-only"
 
         stay_within_domain = _coerce_bool(
             raw.get("stayWithinDomain", True),

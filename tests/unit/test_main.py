@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+from src.constants import DEFAULT_START_URL, SUMMARY_KEY
 from src.crawl_depth import get_request_depth
 from src.main import _dedupe_urls, main
 
@@ -68,9 +69,7 @@ async def test_main_uses_default_url_when_no_seeds():
         await main()
 
     mock_build.assert_called_once()
-    assert _seed_urls_from_run_call(mock_crawler) == [
-        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-    ]
+    assert _seed_urls_from_run_call(mock_crawler) == [DEFAULT_START_URL]
 
 
 @pytest.mark.asyncio
@@ -108,7 +107,7 @@ async def test_main_always_writes_summary_even_on_error():
         await main()
 
     mock_actor.set_value.assert_awaited_once()
-    assert mock_actor.set_value.call_args[0][0] == "#SUMMARY"
+    assert mock_actor.set_value.call_args[0][0] == SUMMARY_KEY
 
 
 @pytest.mark.asyncio
@@ -169,7 +168,7 @@ async def test_main_exports_summary():
 
     mock_actor.set_value.assert_awaited_once()
     key, summary = mock_actor.set_value.call_args[0]
-    assert key == "#SUMMARY"
+    assert key == SUMMARY_KEY
     assert "crawled" in summary
     assert "saved" in summary
     assert "filtered" in summary

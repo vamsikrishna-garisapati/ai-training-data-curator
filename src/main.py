@@ -8,7 +8,7 @@ import httpx
 from apify import Actor
 
 from src.config import ActorConfig
-from src.constants import DEFAULT_START_URL
+from src.constants import DEFAULT_START_URL, SUMMARY_KEY
 from src.crawler import build_crawler
 from src.dedup.simhash_dedup import Deduplicator
 from src.crawl_depth import build_seed_requests
@@ -34,7 +34,11 @@ async def _write_summary(
     final_stats=None,
 ) -> None:
     try:
-        await Actor.set_value("#SUMMARY", stats.to_summary(max_pages, final_stats))
+        await Actor.set_value(
+            SUMMARY_KEY,
+            stats.to_summary(max_pages, final_stats),
+            content_type="application/json",
+        )
     except Exception as exc:
         Actor.log.warning(
             "Could not write run summary to key-value store (%s). "

@@ -15,7 +15,7 @@ def test_from_input_defaults():
     assert config.deduplicate is True
     assert config.proxy_configuration is None
     assert config.max_concurrency == 10
-    assert config.crawl_strategy == "recurse"
+    assert config.crawl_strategy == "seeds-only"
     assert config.stay_within_domain is True
     assert config.include_url_globs == []
     assert config.exclude_url_globs == []
@@ -96,7 +96,7 @@ def test_from_input_coerces_invalid_max_concurrency():
 
 def test_from_input_coerces_invalid_crawl_strategy():
     config = ActorConfig.from_input({"crawlStrategy": "breadth-first"})
-    assert config.crawl_strategy == "recurse"
+    assert config.crawl_strategy == "seeds-only"
 
 
 def test_from_input_empty_sitemap_becomes_none():

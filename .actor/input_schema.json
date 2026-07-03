@@ -11,23 +11,28 @@
       "description": "Seed URLs to begin crawling. Provide at least one start URL or a sitemapUrl.",
       "editor": "requestListSources",
       "prefill": [
-        { "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html" }
+        { "url": "https://httpbin.org/html" }
+      ],
+      "example": [
+        { "url": "https://docs.example.com/getting-started" }
       ]
     },
     "sitemapUrl": {
       "title": "Sitemap URL",
       "type": "string",
       "description": "Optional sitemap.xml URL; URLs are merged with startUrls",
-      "editor": "textfield"
+      "editor": "textfield",
+      "example": "https://docs.example.com/sitemap.xml"
     },
     "maxPages": {
       "title": "Max pages",
       "type": "integer",
       "description": "Maximum number of pages to crawl and export.",
       "default": 10,
-      "prefill": 5,
+      "prefill": 1,
       "minimum": 1,
-      "maximum": 100000
+      "maximum": 100000,
+      "example": 100
     },
     "maxSitemapUrls": {
       "title": "Max sitemap URLs",
@@ -42,19 +47,22 @@
       "description": "Minimum extracted text length in characters; shorter pages are filtered out.",
       "default": 100,
       "prefill": 50,
-      "minimum": 0
+      "minimum": 0,
+      "example": 200
     },
     "language": {
       "title": "Language filter",
       "type": "string",
       "description": "ISO 639-1 code (e.g. en). Leave empty to accept all.",
-      "editor": "textfield"
+      "editor": "textfield",
+      "example": "en"
     },
     "deduplicate": {
       "title": "Remove duplicates",
       "type": "boolean",
       "description": "When true, near-duplicate pages are removed using SimHash fingerprinting.",
-      "default": true
+      "default": true,
+      "prefill": false
     },
     "maxFingerprints": {
       "title": "Max dedup fingerprints",
@@ -67,7 +75,7 @@
       "title": "Crawl strategy",
       "type": "string",
       "enum": ["recurse", "seeds-only"],
-      "default": "recurse",
+      "default": "seeds-only",
       "prefill": "seeds-only",
       "description": "recurse: follow links from seed pages; seeds-only: crawl only seed/sitemap URLs"
     },
@@ -95,6 +103,7 @@
       "title": "Max concurrency",
       "type": "integer",
       "default": 10,
+      "prefill": 3,
       "minimum": 1,
       "maximum": 200,
       "description": "Maximum number of pages fetched in parallel"

@@ -19,7 +19,7 @@
       "type": "string",
       "title": "Run summary",
       "description": "Crawl statistics: pages crawled, saved, filtered, and failed.",
-      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/%23SUMMARY"
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/SUMMARY"
     }
   }
 }
