@@ -22,7 +22,6 @@
     "generatedBy": "Cursor with Auto"
   },
   "storages": {
-    "dataset": "./dataset_schema.json",
-    "rejected": "./rejected_dataset_schema.json"
+    "dataset": "./dataset_schema.json"
   }
 }
