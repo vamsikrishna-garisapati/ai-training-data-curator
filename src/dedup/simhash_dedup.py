@@ -30,17 +30,23 @@ class Deduplicator:
             for band in range(NUM_BANDS)
         ]
 
-    def _rebuild_buckets(self) -> None:
-        self._buckets = defaultdict(list)
-        for idx, simhash in enumerate(self._hashes):
-            for key in self._band_keys(simhash):
-                self._buckets[key].append(idx)
+    def _remove_index_from_buckets(self, removed_idx: int) -> None:
+        """Drop ``removed_idx`` and shift higher indices down by one."""
+        empty_keys: list[tuple[int, int]] = []
+        for key, indices in self._buckets.items():
+            updated = [idx - 1 for idx in indices if idx != removed_idx]
+            if updated:
+                self._buckets[key] = updated
+            else:
+                empty_keys.append(key)
+        for key in empty_keys:
+            del self._buckets[key]
 
     def _evict_oldest(self) -> None:
         if not self._hashes:
             return
+        self._remove_index_from_buckets(0)
         self._hashes.pop(0)
-        self._rebuild_buckets()
 
     def is_duplicate(self, text: str) -> bool:
         """Return True if text is a near-duplicate of previously seen content."""

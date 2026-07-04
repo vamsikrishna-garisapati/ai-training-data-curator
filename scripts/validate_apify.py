@@ -89,6 +89,42 @@ def main() -> int:
                 "actor.json storages.dataset",
             )
         )
+    elif isinstance(dataset, str):
+        dataset_path = ACTOR_DIR / dataset
+        if not dataset_path.exists():
+            errors.append(f"actor.json storages.dataset file not found: {dataset}")
+        else:
+            dataset_data = _load_json(dataset_path)
+            errors.extend(
+                _collect_errors(
+                    Draft202012Validator(dataset_schema, resolver=resolver),
+                    dataset_data,
+                    "dataset_schema.json",
+                )
+            )
+
+    rejected = actor.get("storages", {}).get("rejected")
+    if isinstance(rejected, dict):
+        errors.extend(
+            _collect_errors(
+                Draft202012Validator(dataset_schema, resolver=resolver),
+                rejected,
+                "actor.json storages.rejected",
+            )
+        )
+    elif isinstance(rejected, str):
+        rejected_path = ACTOR_DIR / rejected
+        if not rejected_path.exists():
+            errors.append(f"actor.json storages.rejected file not found: {rejected}")
+        else:
+            rejected_data = _load_json(rejected_path)
+            errors.extend(
+                _collect_errors(
+                    Draft202012Validator(dataset_schema, resolver=resolver),
+                    rejected_data,
+                    "rejected_dataset_schema.json",
+                )
+            )
 
     dockerfile_ref = actor.get("dockerfile", "../Dockerfile")
     dockerfile_resolved = (ACTOR_DIR / dockerfile_ref).resolve()

@@ -8,12 +8,13 @@ import httpx
 from apify import Actor
 
 from src.config import ActorConfig
-from src.constants import DEFAULT_START_URL, SUMMARY_KEY
+from src.constants import SUMMARY_KEY
 from src.crawler import build_crawler
 from src.dedup.simhash_dedup import Deduplicator
 from src.crawl_depth import build_seed_requests
 from src.sitemap import fetch_sitemap_urls
 from src.stats import CrawlStats
+from src.url_validation import normalize_url_for_dedup
 from src.urls import cap_seed_urls, derive_allowed_hosts
 
 
@@ -21,7 +22,7 @@ def _dedupe_urls(urls: list[str]) -> list[str]:
     seen: set[str] = set()
     result: list[str] = []
     for url in urls:
-        normalized = url.rstrip("/")
+        normalized = normalize_url_for_dedup(url)
         if normalized not in seen:
             seen.add(normalized)
             result.append(url)
@@ -55,7 +56,7 @@ async def main() -> None:
     async with Actor:
         try:
             raw = await Actor.get_input() or {}
-            config = ActorConfig.from_input(raw)
+            config = ActorConfig.from_input(raw, warn=Actor.log.warning)
             max_pages = config.max_pages
 
             deduplicator = (
@@ -69,7 +70,12 @@ async def main() -> None:
                 try:
                     async with httpx.AsyncClient(timeout=30.0) as client:
                         seed_urls.extend(
-                            await fetch_sitemap_urls(config.sitemap_url, client)
+                            await fetch_sitemap_urls(
+                                config.sitemap_url,
+                                client,
+                                max_urls=config.effective_max_sitemap_urls,
+                                warn=Actor.log.warning,
+                            )
                         )
                 except httpx.HTTPError as exc:
                     Actor.log.warning(
@@ -88,11 +94,13 @@ async def main() -> None:
             seed_urls = cap_seed_urls(seed_urls, config.effective_max_sitemap_urls)
 
             if not seed_urls:
-                Actor.log.warning(
-                    "No seed URLs provided; using default start URL %s.",
-                    DEFAULT_START_URL,
+                message = (
+                    "No valid seed URLs provided. Add at least one http(s) start URL "
+                    "or a valid sitemapUrl."
                 )
-                seed_urls = [DEFAULT_START_URL]
+                Actor.log.error(message)
+                await Actor.fail(message)
+                return
 
             allowed_hosts = derive_allowed_hosts(seed_urls)
 
@@ -120,7 +128,8 @@ async def main() -> None:
             if stats.saved == 0:
                 Actor.log.warning(
                     "Run finished with zero saved records (crawled=%d failed=%d). "
-                    "Check filters, seed URLs, or site availability.",
+                    "Check filters, seed URLs, or site availability. "
+                    "Note: maxPages limits pages fetched, not records saved after filtering.",
                     stats.crawled,
                     stats.failed,
                 )

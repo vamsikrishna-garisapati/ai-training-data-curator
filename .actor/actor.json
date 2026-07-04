@@ -3,10 +3,10 @@
   "actorSpecification": 1,
   "name": "ai-training-data-curator",
   "title": "AI Training Data Curator",
-  "description": "Turn any public website into a clean LLM training dataset. Crawl docs, blogs, and help centers; extract readable text; filter by language and quality; remove duplicates; export JSON, JSONL, or CSV for fine-tuning, RAG, and AI workflows.",
-  "seoTitle": "Website to LLM Dataset | AI Training Data Tool",
-  "seoDescription": "Crawl public websites and export clean LLM training data for fine-tuning and RAG. Auto-extract text, remove duplicates, download JSON or CSV. No code needed.",
-  "version": "0.1",
+  "description": "Crawl public websites and build LLM training datasets for fine-tuning and RAG. Extract clean text from docs, blogs, and help centers; filter by language; remove duplicates; export JSON, JSONL, or CSV. No coding required.",
+  "seoTitle": "Crawl Websites for LLM Training Data | Web to Dataset",
+  "seoDescription": "Turn websites into LLM training datasets for fine-tuning and RAG. Crawl pages, extract clean text, remove duplicates, export JSON or CSV on Apify.",
+  "version": "0.4",
   "buildTag": "latest",
   "dockerfile": "../Dockerfile",
   "readme": "./README.md",
@@ -18,32 +18,11 @@
     "timeoutSecs": 3600
   },
   "meta": {
-    "origin": "AI Training Data Curator"
+    "origin": "AI Training Data Curator",
+    "generatedBy": "Cursor with Auto"
   },
   "storages": {
-    "dataset": {
-      "actorSpecification": 1,
-      "fields": {},
-      "views": {
-        "overview": {
-          "title": "Overview",
-          "transformation": {
-            "fields": ["url", "title", "text", "wordCount", "language", "author", "publishedDate"]
-          },
-          "display": {
-            "component": "table",
-            "properties": {
-              "url": { "label": "URL", "format": "link" },
-              "title": { "label": "Title", "format": "text" },
-              "text": { "label": "Text", "format": "text" },
-              "wordCount": { "label": "Words", "format": "number" },
-              "language": { "label": "Language" },
-              "author": { "label": "Author" },
-              "publishedDate": { "label": "Published" }
-            }
-          }
-        }
-      }
-    }
+    "dataset": "./dataset_schema.json",
+    "rejected": "./rejected_dataset_schema.json"
   }
 }

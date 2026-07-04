@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install validation dependencies
-        run: pip install jsonschema
+        run: pip install -r requirements.txt jsonschema
 
       - name: Validate Apify actor config (official schemas)
         run: python scripts/validate_apify.py

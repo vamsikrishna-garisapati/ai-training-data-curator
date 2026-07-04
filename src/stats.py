@@ -32,6 +32,7 @@ class CrawlStats:
             },
             "failed": self.failed,
             "maxPages": max_pages,
+            "maxPagesNote": "Limits pages fetched, not records saved after filtering",
         }
         if final_stats is not None:
             summary["requestsFinished"] = final_stats.requests_finished

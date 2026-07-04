@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from src.constants import DEFAULT_START_URL, SUMMARY_KEY
+from src.constants import SUMMARY_KEY
 from src.crawl_depth import get_request_depth
 from src.main import _dedupe_urls, main
 
@@ -63,13 +63,15 @@ async def test_main_merges_sitemap_urls():
 
 
 @pytest.mark.asyncio
-async def test_main_uses_default_url_when_no_seeds():
-    mock_crawler = AsyncMock()
-    with _patch_actor({})[0], patch("src.main.build_crawler", return_value=mock_crawler) as mock_build:
+async def test_main_fails_when_no_seeds():
+    actor_patch, mock_actor = _patch_actor({})
+    with actor_patch, patch("src.main.build_crawler") as mock_build:
         await main()
 
-    mock_build.assert_called_once()
-    assert _seed_urls_from_run_call(mock_crawler) == [DEFAULT_START_URL]
+    mock_build.assert_not_called()
+    mock_actor.fail.assert_awaited_once()
+    message = mock_actor.fail.call_args[0][0]
+    assert "No valid seed URLs" in message
 
 
 @pytest.mark.asyncio
@@ -179,6 +181,7 @@ def test_dedupe_urls():
         "https://books.toscrape.com",
         "https://books.toscrape.com/",
         "https://books.toscrape.com/page",
+        "https://books.toscrape.com/page?q=1",
     ]
     assert _dedupe_urls(urls) == [
         "https://books.toscrape.com",

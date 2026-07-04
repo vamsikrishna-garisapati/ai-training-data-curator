@@ -37,7 +37,7 @@ Pipeline: **crawl → extract text (Trafilatura) → filter → deduplicate (Sim
   "startUrls": [{ "url": "https://httpbin.org/html" }],
   "maxPages": 10,
   "crawlStrategy": "seeds-only",
-  "minTextLength": 50,
+  "minTextLength": 100,
   "deduplicate": true
 }
 ```
@@ -66,7 +66,7 @@ Run summary is stored in key-value store key `SUMMARY`.
 |-------|---------|
 | `startUrls` | Seed URLs (required unless `sitemapUrl`) |
 | `sitemapUrl` | Optional sitemap.xml |
-| `maxPages` | Page limit (1–100000) |
+| `maxPages` | Fetch limit (1–100000); counts HTTP requests, not saved rows after filtering |
 | `crawlStrategy` | `recurse` or `seeds-only` |
 | `stayWithinDomain` | Limit link following to seed hosts |
 | `language` | ISO 639-1 filter (e.g. `en`) |
@@ -78,22 +78,14 @@ Run summary is stored in key-value store key `SUMMARY`.
 
 ## How to run
 
-**Apify Console:** Open Actor → Run with JSON input above.
-
-**Apify CLI:**
-
-```bash
-apify run --purge --input='{"startUrls":[{"url":"https://books.toscrape.com"}],"maxPages":5,"crawlStrategy":"seeds-only"}'
-```
-
-**Apify API:** `POST /v2/acts/{actorId}/runs` with `body` = input JSON.
+**Apify API:** `POST /v2/acts/{actorId}/runs` with `body` = input JSON (see minimal input above).
 
 ## Reliability notes
 
 - Invalid input is **coerced to safe defaults** (run does not fail on bad types).
-- Empty `startUrls` falls back to a **default public demo URL**.
+- Missing or invalid `startUrls` and `sitemapUrl` causes the run to **fail** with a clear message (no silent demo URL fallback).
 - Per-page handler errors are logged; the run **continues** and exits **Succeeded**.
-- Apify **daily automated tests** use input **prefill** values (small `maxPages`, `seeds-only`, product detail seed URL).
+- Apify **daily automated tests** use input **prefill** values (`https://httpbin.org/html`, `maxPages: 1`, `seeds-only`).
 
 ## Compliance
 

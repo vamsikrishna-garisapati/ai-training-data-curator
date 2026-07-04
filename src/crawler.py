@@ -33,14 +33,19 @@ FILTER_REASON_DEDUP = "dedup"
 FILTER_REASON_NON_HTML = "non_html"
 
 
+_HTML_CONTENT_TYPES = frozenset(
+    {"text/html", "application/xhtml+xml", "text/plain"},
+)
+
+
 def is_html_content_type(content_type: str) -> bool:
     """Return True when the response should be treated as HTML for extraction."""
     normalized = content_type.lower().split(";", maxsplit=1)[0].strip()
     if not normalized:
         return True
-    if "html" in normalized or normalized in {"text/plain", "application/xhtml+xml"}:
+    if normalized in _HTML_CONTENT_TYPES:
         return True
-    return normalized.startswith("text/")
+    return "html" in normalized
 
 
 def process_page(
@@ -51,14 +56,19 @@ def process_page(
     stats: CrawlStats | None = None,
 ) -> tuple[dict | None, str | None]:
     """Run extract → filter → dedup pipeline; return (record, reject_reason)."""
-    record = extract_page(html, url)
+    record = extract_page(html, url, min_text_length=config.min_text_length)
     if record is None:
         if stats is not None:
             stats.filtered_extraction += 1
         return None, FILTER_REASON_EXTRACTION
 
     text = record.get("text", "")
-    if config.language and not passes_language(text, config.language, html):
+    if config.language and not passes_language(
+        text,
+        config.language,
+        html,
+        detected_language=record.get("language") or None,
+    ):
         if stats is not None:
             stats.filtered_language += 1
         return None, FILTER_REASON_LANGUAGE
@@ -117,7 +127,7 @@ def build_crawler(
         proxy_configuration=proxy_configuration,
         concurrency_settings=ConcurrencySettings(
             max_concurrency=config.max_concurrency,
-            desired_concurrency=min(config.max_concurrency, 10),
+            desired_concurrency=config.max_concurrency,
             max_tasks_per_minute=max_tasks_per_minute,
         ),
     )
@@ -142,16 +152,27 @@ def build_crawler(
                     html, url, config, deduplicator, stats
                 )
                 if record:
-                    await context.push_data(record)
-                    if stats is not None:
-                        stats.saved += 1
+                    try:
+                        await context.push_data(record)
+                        if stats is not None:
+                            stats.saved += 1
+                    except Exception as exc:
+                        if stats is not None:
+                            stats.failed += 1
+                        context.log.warning(
+                            "Failed to save dataset record for %s: %s",
+                            url,
+                            exc,
+                        )
                 elif config.export_rejected_pages and reject_reason:
                     await _push_rejected(context, url, reject_reason)
             elif config.export_rejected_pages:
                 await _push_rejected(context, url, FILTER_REASON_NON_HTML)
 
-            if config.crawl_strategy == "recurse" and should_follow_links(
-                current_depth, config.max_depth
+            if (
+                should_extract
+                and config.crawl_strategy == "recurse"
+                and should_follow_links(current_depth, config.max_depth)
             ):
                 await context.enqueue_links(
                     **enqueue_kwargs,

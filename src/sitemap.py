@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import logging
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 
 import httpx
 
+from src.constants import MAX_SITEMAP_RESPONSE_BYTES, MAX_SITEMAP_URLS
+
 SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 DEFAULT_MAX_DEPTH = 2
-
-logger = logging.getLogger(__name__)
+WarnFn = Callable[..., None]
 
 
 def _local_tag(element: ET.Element) -> str:
@@ -35,12 +36,23 @@ def _iter_locs(root: ET.Element, child_tag: str) -> list[str]:
     return urls
 
 
-def _parse_sitemap_xml(xml_text: str) -> ET.Element | None:
+def _parse_sitemap_xml(xml_text: str, *, warn: WarnFn) -> ET.Element | None:
     try:
         return ET.fromstring(xml_text)
     except ET.ParseError:
-        logger.warning("Invalid sitemap XML; skipping.")
+        warn("Invalid sitemap XML; skipping.")
         return None
+
+
+def _cap_url_list(urls: list[str], max_urls: int, *, warn: WarnFn) -> list[str]:
+    if len(urls) <= max_urls:
+        return urls
+    warn(
+        "Sitemap produced %d URLs; truncating to %d.",
+        len(urls),
+        max_urls,
+    )
+    return urls[:max_urls]
 
 
 async def fetch_sitemap_urls(
@@ -48,16 +60,29 @@ async def fetch_sitemap_urls(
     client: httpx.AsyncClient,
     *,
     max_depth: int = DEFAULT_MAX_DEPTH,
+    max_urls: int = MAX_SITEMAP_URLS,
+    max_response_bytes: int = MAX_SITEMAP_RESPONSE_BYTES,
+    warn: WarnFn | None = None,
     _depth: int = 0,
 ) -> list[str]:
     """Fetch a sitemap (or sitemap index) and return page URLs."""
+    log_warn = warn if warn is not None else lambda *_args, **_kwargs: None
+
     if _depth > max_depth:
         return []
 
     response = await client.get(url)
     response.raise_for_status()
 
-    root = _parse_sitemap_xml(response.text)
+    if len(response.content) > max_response_bytes:
+        log_warn(
+            "Sitemap response from %s exceeds %d bytes; skipping.",
+            url,
+            max_response_bytes,
+        )
+        return []
+
+    root = _parse_sitemap_xml(response.text, warn=log_warn)
     if root is None:
         return []
 
@@ -65,21 +90,25 @@ async def fetch_sitemap_urls(
     if root_tag == "sitemapindex":
         urls: list[str] = []
         for child_url in _iter_locs(root, "sitemap"):
+            if len(urls) >= max_urls:
+                break
             try:
-                urls.extend(
-                    await fetch_sitemap_urls(
-                        child_url,
-                        client,
-                        max_depth=max_depth,
-                        _depth=_depth + 1,
-                    )
+                child_urls = await fetch_sitemap_urls(
+                    child_url,
+                    client,
+                    max_depth=max_depth,
+                    max_urls=max_urls - len(urls),
+                    max_response_bytes=max_response_bytes,
+                    warn=warn,
+                    _depth=_depth + 1,
                 )
+                urls.extend(child_urls)
             except httpx.HTTPError as exc:
-                logger.warning("Failed to fetch child sitemap %s: %s", child_url, exc)
-        return urls
+                log_warn("Failed to fetch child sitemap %s: %s", child_url, exc)
+        return _cap_url_list(urls, max_urls, warn=log_warn)
 
     if root_tag == "urlset":
-        return _iter_locs(root, "url")
+        return _cap_url_list(_iter_locs(root, "url"), max_urls, warn=log_warn)
 
     locs: list[str] = []
     for loc in root.iter(f"{{{SITEMAP_NS}}}loc"):
@@ -89,4 +118,4 @@ async def fetch_sitemap_urls(
         for loc in root.iter("loc"):
             if loc.text:
                 locs.append(loc.text.strip())
-    return locs
+    return _cap_url_list(locs, max_urls, warn=log_warn)

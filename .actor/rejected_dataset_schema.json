@@ -1,0 +1,28 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "url": {
+      "type": "string",
+      "description": "URL of the filtered page"
+    },
+    "filterReason": {
+      "type": "string",
+      "description": "Why the page was rejected (extraction, language, length, quality, dedup, non_html)"
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Rejected pages",
+      "transformation": {
+        "fields": ["url", "filterReason"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "url": { "label": "URL", "format": "link" },
+          "filterReason": { "label": "Reason", "format": "text" }
+        }
+      }
+    }
+  }
+}

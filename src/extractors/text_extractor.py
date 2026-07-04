@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import json
 import re
 
-import trafilatura
 from readability import Document
+from trafilatura import bare_extraction
 
 from src.extractors.language_detector import detect_language
 
-MIN_TRAFILATURA_TEXT = 50
+DEFAULT_MIN_TEXT_LENGTH = 50
 
 
 def _word_count(text: str) -> int:
@@ -22,14 +21,13 @@ def _strip_html(html: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def extract_page(html: str, url: str) -> dict | None:
+def extract_page(
+    html: str,
+    url: str,
+    min_text_length: int = DEFAULT_MIN_TEXT_LENGTH,
+) -> dict | None:
     """Extract title, text, author, date, language, and word count from HTML."""
-    raw_json = trafilatura.extract(
-        html,
-        url=url,
-        output_format="json",
-        with_metadata=True,
-    )
+    document = bare_extraction(html, url=url, with_metadata=True)
 
     title: str | None = None
     text: str | None = None
@@ -37,15 +35,15 @@ def extract_page(html: str, url: str) -> dict | None:
     published_date: str | None = None
     trafilatura_lang: str | None = None
 
-    if raw_json:
-        data = json.loads(raw_json)
+    if document is not None:
+        data = document.as_dict()
         title = data.get("title") or None
         text = data.get("text") or data.get("raw_text") or None
         author = data.get("author") or None
-        published_date = data.get("date") or data.get("publishedDate") or None
+        published_date = data.get("date") or None
         trafilatura_lang = data.get("language") or None
 
-    if not text or len(text) < MIN_TRAFILATURA_TEXT:
+    if not text or len(text) < min_text_length:
         doc = Document(html)
         fallback_title = doc.title()
         fallback_html = doc.summary()

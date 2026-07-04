@@ -1,25 +1,20 @@
 """Guarantee Apify automated daily-check prefill produces a non-empty dataset."""
 
 from src.config import ActorConfig
-from src.constants import APIFY_SMOKE_START_URL
 from src.crawler import process_page
+from tests.prefill import load_prefill_input
 from tests.smoke_html import APIFY_DAILY_CHECK_HTML
 
-PREFILL_INPUT = {
-    "startUrls": [{"url": APIFY_SMOKE_START_URL}],
-    "maxPages": 1,
-    "minTextLength": 50,
-    "crawlStrategy": "seeds-only",
-    "deduplicate": False,
-}
+PREFILL_INPUT = load_prefill_input()
+PREFILL_URL = PREFILL_INPUT["startUrls"][0]["url"]
 
 
 def test_prefill_input_matches_input_schema_prefill():
     config = ActorConfig.from_input(PREFILL_INPUT)
-    assert config.start_urls == [APIFY_SMOKE_START_URL]
-    assert config.max_pages == 1
-    assert config.min_text_length == 50
-    assert config.crawl_strategy == "seeds-only"
+    assert config.start_urls == [PREFILL_URL]
+    assert config.max_pages == PREFILL_INPUT["maxPages"]
+    assert config.min_text_length == PREFILL_INPUT["minTextLength"]
+    assert config.crawl_strategy == PREFILL_INPUT["crawlStrategy"]
 
 
 def test_prefill_seed_page_produces_dataset_record():
@@ -28,7 +23,7 @@ def test_prefill_seed_page_produces_dataset_record():
 
     record, reject_reason = process_page(
         APIFY_DAILY_CHECK_HTML,
-        APIFY_SMOKE_START_URL,
+        PREFILL_URL,
         config,
         None,
         None,
@@ -36,6 +31,6 @@ def test_prefill_seed_page_produces_dataset_record():
 
     assert reject_reason is None, f"Prefill page was filtered: {reject_reason}"
     assert record is not None
-    assert record["url"] == APIFY_SMOKE_START_URL
+    assert record["url"] == PREFILL_URL
     assert len(record.get("text", "")) >= config.min_text_length
     assert record.get("wordCount", 0) > 0

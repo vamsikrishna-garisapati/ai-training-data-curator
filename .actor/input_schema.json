@@ -3,7 +3,7 @@
   "title": "AI Training Data Curator Input",
   "type": "object",
   "schemaVersion": 1,
-  "description": "Turn public websites into clean LLM training datasets for fine-tuning and RAG. Add your URLs, set a page limit, and download structured text data as JSON, JSONL, or CSV.",
+  "description": "Crawl websites and export LLM training datasets for fine-tuning and RAG. Add URLs or a sitemap, set a page limit, download clean text as JSON, JSONL, or CSV.",
   "properties": {
     "startUrls": {
       "title": "Start URLs",
@@ -27,7 +27,7 @@
     "maxPages": {
       "title": "Max pages",
       "type": "integer",
-      "description": "Maximum number of pages to crawl and export.",
+      "description": "Maximum number of pages to fetch (HTTP requests). Filtered or duplicate pages still count toward this limit; saved dataset rows may be fewer.",
       "default": 10,
       "prefill": 1,
       "minimum": 1,
@@ -62,7 +62,7 @@
       "type": "boolean",
       "description": "When true, near-duplicate pages are removed using SimHash fingerprinting.",
       "default": true,
-      "prefill": false
+      "prefill": true
     },
     "maxFingerprints": {
       "title": "Max dedup fingerprints",

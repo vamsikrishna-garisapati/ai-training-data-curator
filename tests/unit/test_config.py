@@ -68,7 +68,7 @@ def test_from_input_none_input():
 
 @pytest.mark.parametrize(
     "max_pages,expected",
-    [(0, 1), (-1, 1), (100_001, 100_000), ("50", 10)],
+    [(0, 1), (-1, 1), (100_001, 100_000), ("50", 10), (50.0, 50)],
 )
 def test_from_input_coerces_invalid_max_pages(max_pages, expected):
     config = ActorConfig.from_input({"maxPages": max_pages})
@@ -102,6 +102,23 @@ def test_from_input_coerces_invalid_crawl_strategy():
 def test_from_input_empty_sitemap_becomes_none():
     config = ActorConfig.from_input({"sitemapUrl": ""})
     assert config.sitemap_url is None
+
+
+def test_from_input_skips_invalid_start_urls():
+    config = ActorConfig.from_input(
+        {
+            "startUrls": [
+                {"url": "javascript:alert(1)"},
+                {"url": "https://ok.com"},
+            ],
+        }
+    )
+    assert config.start_urls == ["https://ok.com"]
+
+
+def test_from_input_accepts_whole_number_float_for_max_pages():
+    config = ActorConfig.from_input({"maxPages": 25.0})
+    assert config.max_pages == 25
 
 
 def test_from_input_skips_empty_url_dicts():

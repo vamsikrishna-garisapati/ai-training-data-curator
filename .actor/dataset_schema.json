@@ -1,0 +1,53 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "url": {
+      "type": "string",
+      "description": "Canonical page URL"
+    },
+    "title": {
+      "type": "string",
+      "description": "Page title"
+    },
+    "text": {
+      "type": "string",
+      "description": "Extracted main text content"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author when available in page metadata"
+    },
+    "publishedDate": {
+      "type": "string",
+      "description": "Publication date when available in page metadata"
+    },
+    "language": {
+      "type": "string",
+      "description": "Detected or declared ISO 639-1 language code"
+    },
+    "wordCount": {
+      "type": "integer",
+      "description": "Word count of extracted text"
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": ["url", "title", "text", "wordCount", "language", "author", "publishedDate"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "url": { "label": "URL", "format": "link" },
+          "title": { "label": "Title", "format": "text" },
+          "text": { "label": "Text", "format": "text" },
+          "wordCount": { "label": "Words", "format": "number" },
+          "language": { "label": "Language", "format": "text" },
+          "author": { "label": "Author", "format": "text" },
+          "publishedDate": { "label": "Published", "format": "text" }
+        }
+      }
+    }
+  }
+}

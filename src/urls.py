@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from crawlee._utils.globs import Glob
+from crawlee import Glob
 
 from src.config import ActorConfig
 

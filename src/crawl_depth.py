@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from crawlee import Request
-from crawlee._request import RequestOptions
+from crawlee import Request, RequestOptions
 
 DEPTH_USER_DATA_KEY = "depth"
 REJECTED_DATASET_NAME = "rejected"

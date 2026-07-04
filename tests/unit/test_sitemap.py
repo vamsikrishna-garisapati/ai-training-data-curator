@@ -12,6 +12,7 @@ from src.sitemap import fetch_sitemap_urls
 async def test_fetch_sitemap_urls(sitemap_xml):
     mock_response = MagicMock()
     mock_response.text = sitemap_xml
+    mock_response.content = sitemap_xml.encode()
     mock_response.raise_for_status = MagicMock()
 
     mock_client = AsyncMock(spec=httpx.AsyncClient)
@@ -47,6 +48,7 @@ async def test_fetch_sitemap_urls_raises_on_http_error():
 async def test_fetch_sitemap_urls_returns_empty_on_invalid_xml():
     mock_response = MagicMock()
     mock_response.text = "not valid xml <<>>"
+    mock_response.content = b"not valid xml <<>>"
     mock_response.raise_for_status = MagicMock()
 
     mock_client = AsyncMock(spec=httpx.AsyncClient)
@@ -54,3 +56,23 @@ async def test_fetch_sitemap_urls_returns_empty_on_invalid_xml():
 
     urls = await fetch_sitemap_urls("https://books.toscrape.com/sitemap.xml", mock_client)
     assert urls == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_sitemap_urls_skips_oversized_response():
+    mock_response = MagicMock()
+    mock_response.text = "<urlset></urlset>"
+    mock_response.content = b"x" * (10 * 1024 * 1024 + 1)
+    mock_response.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.get.return_value = mock_response
+
+    warn = MagicMock()
+    urls = await fetch_sitemap_urls(
+        "https://books.toscrape.com/sitemap.xml",
+        mock_client,
+        warn=warn,
+    )
+    assert urls == []
+    warn.assert_called()

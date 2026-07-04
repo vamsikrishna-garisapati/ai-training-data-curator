@@ -45,6 +45,20 @@ def test_lsh_buckets_used():
     assert len(dedup._buckets) > NUM_BANDS
 
 
+def test_eviction_keeps_bucket_indices_consistent():
+    dedup = Deduplicator(max_fingerprints=3)
+    for index in range(10):
+        text = (
+            f"Unique document number {index} with distinct vocabulary terms "
+            f"alpha beta gamma delta epsilon zeta eta theta."
+        )
+        dedup.is_duplicate(text)
+
+    assert len(dedup._hashes) == 3
+    for indices in dedup._buckets.values():
+        assert all(0 <= idx < len(dedup._hashes) for idx in indices)
+
+
 def test_max_fingerprints_evicts_oldest_fifo():
     dedup = Deduplicator(max_fingerprints=3)
     texts = [

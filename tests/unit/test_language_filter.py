@@ -34,6 +34,21 @@ def test_empty_text_fails_language_filter():
     assert passes_language("   ", "en") is False
 
 
+def test_passes_language_reuses_detected_language(monkeypatch):
+    calls: list[str] = []
+
+    def track_detect(_text, _html="", trafilatura_lang=None):
+        calls.append("detect")
+        return "en"
+
+    monkeypatch.setattr(
+        "src.filters.language_filter.detect_language",
+        track_detect,
+    )
+    assert passes_language("ignored", "en", detected_language="en") is True
+    assert calls == []
+
+
 def test_undetectable_language_fails_filter(monkeypatch):
     from src.extractors import language_detector
 

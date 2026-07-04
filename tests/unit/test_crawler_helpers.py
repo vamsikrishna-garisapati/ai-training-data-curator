@@ -65,6 +65,8 @@ async def test_get_html_falls_back_to_empty_when_no_source():
         ("text/plain", True),
         ("", True),
         ("application/pdf", False),
+        ("text/css", False),
+        ("text/javascript", False),
         ("image/png", False),
         ("video/mp4", False),
     ],
@@ -80,7 +82,7 @@ def test_build_crawler_configures_request_rate_limit():
 
 
 @pytest.mark.asyncio
-async def test_request_handler_skips_non_html_but_can_enqueue(monkeypatch):
+async def test_request_handler_skips_non_html_and_does_not_enqueue(monkeypatch):
     config = ActorConfig.from_input({"crawlStrategy": "recurse"})
     stats = MagicMock()
     enqueue = AsyncMock()
@@ -107,7 +109,13 @@ async def test_request_handler_skips_non_html_but_can_enqueue(monkeypatch):
     get_html.assert_not_called()
     process_page.assert_not_called()
     push_data.assert_not_called()
-    enqueue.assert_awaited_once()
+    enqueue.assert_not_awaited()
+
+
+def test_build_crawler_uses_full_max_concurrency():
+    config = ActorConfig.from_input({"maxConcurrency": 25})
+    crawler = build_crawler(config, None, allowed_hosts={"books.toscrape.com"})
+    assert crawler._autoscaled_pool._desired_concurrency == 25  # noqa: SLF001
 
 
 @pytest.mark.asyncio
@@ -164,6 +172,40 @@ async def test_request_handler_skips_enqueue_at_max_depth(monkeypatch):
     await handler(context)
 
     enqueue.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_request_handler_survives_push_data_failure(monkeypatch):
+    config = ActorConfig.from_input({"startUrls": [{"url": "https://books.toscrape.com"}]})
+    stats = CrawlStats()
+
+    context = MagicMock()
+    context.request.url = "https://books.toscrape.com/page"
+    context.request.user_data = {"depth": 0}
+    context.http_response = MagicMock()
+    context.http_response.headers = {"content-type": "text/html"}
+    context.enqueue_links = AsyncMock()
+    context.push_data = AsyncMock(side_effect=RuntimeError("dataset write failed"))
+    context.log = MagicMock()
+
+    crawler = build_crawler(config, None, stats=stats, allowed_hosts={"books.toscrape.com"})
+    handler = crawler.router._default_handler
+    assert handler is not None
+
+    monkeypatch.setattr(
+        "src.crawler._get_html",
+        AsyncMock(return_value="<html><body>content</body></html>"),
+    )
+    monkeypatch.setattr(
+        "src.crawler.process_page",
+        MagicMock(return_value=({"url": "https://books.toscrape.com/page"}, None)),
+    )
+
+    await handler(context)
+
+    assert stats.saved == 0
+    assert stats.failed == 1
+    context.log.warning.assert_called_once()
 
 
 @pytest.mark.asyncio
