@@ -1,14 +1,24 @@
 {
   "actorSpecification": 1,
   "fields": {
-    "url": {
-      "type": "string",
-      "description": "URL of the filtered page"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "URL of the filtered page",
+        "nullable": true,
+        "example": "https://docs.example.com/short-page"
+      },
+      "filterReason": {
+        "type": "string",
+        "description": "Why the page was rejected (extraction, language, length, quality, dedup, non_html)",
+        "nullable": true,
+        "example": "length"
+      }
     },
-    "filterReason": {
-      "type": "string",
-      "description": "Why the page was rejected (extraction, language, length, quality, dedup, non_html)"
-    }
+    "required": [],
+    "additionalProperties": true
   },
   "views": {
     "overview": {

@@ -1,34 +1,54 @@
 {
   "actorSpecification": 1,
   "fields": {
-    "url": {
-      "type": "string",
-      "description": "Canonical page URL"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "Canonical page URL",
+        "nullable": true,
+        "example": "https://docs.example.com/getting-started"
+      },
+      "title": {
+        "type": "string",
+        "description": "Page title",
+        "nullable": true,
+        "example": "Getting started"
+      },
+      "text": {
+        "type": "string",
+        "description": "Extracted main text content",
+        "nullable": true,
+        "example": "This guide walks through installation and your first crawl."
+      },
+      "author": {
+        "type": "string",
+        "description": "Author when available in page metadata",
+        "nullable": true,
+        "example": "Example Author"
+      },
+      "publishedDate": {
+        "type": "string",
+        "description": "Publication date when available in page metadata",
+        "nullable": true,
+        "example": "2026-01-15"
+      },
+      "language": {
+        "type": "string",
+        "description": "Detected or declared ISO 639-1 language code",
+        "nullable": true,
+        "example": "en"
+      },
+      "wordCount": {
+        "type": "integer",
+        "description": "Word count of extracted text",
+        "nullable": true,
+        "example": 512
+      }
     },
-    "title": {
-      "type": "string",
-      "description": "Page title"
-    },
-    "text": {
-      "type": "string",
-      "description": "Extracted main text content"
-    },
-    "author": {
-      "type": "string",
-      "description": "Author when available in page metadata"
-    },
-    "publishedDate": {
-      "type": "string",
-      "description": "Publication date when available in page metadata"
-    },
-    "language": {
-      "type": "string",
-      "description": "Detected or declared ISO 639-1 language code"
-    },
-    "wordCount": {
-      "type": "integer",
-      "description": "Word count of extracted text"
-    }
+    "required": [],
+    "additionalProperties": true
   },
   "views": {
     "overview": {
