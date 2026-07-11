@@ -52,6 +52,7 @@ async def main() -> None:
     stats = CrawlStats()
     max_pages = 10
     final_stats = None
+    fatal_error: str | None = None
 
     async with Actor:
         try:
@@ -126,12 +127,21 @@ async def main() -> None:
             final_stats = await crawler.run(build_seed_requests(seed_urls))
 
             if stats.saved == 0:
-                Actor.log.warning(
-                    "Run finished with zero saved records (crawled=%d failed=%d). "
+                empty_message = (
+                    "Run finished with zero saved records "
+                    f"(crawled={stats.crawled} failed={stats.failed}). "
                     "Check filters, seed URLs, or site availability. "
-                    "Note: maxPages limits pages fetched, not records saved after filtering.",
-                    stats.crawled,
-                    stats.failed,
+                    "Note: maxPages limits pages fetched, not records saved after filtering."
+                )
+                Actor.log.warning(empty_message)
+                await Actor.set_status_message(empty_message)
+                # Fail closed on single-page / daily-check scale so empty datasets
+                # are not reported as successful health runs.
+                if config.max_pages <= 1:
+                    fatal_error = empty_message
+            else:
+                await Actor.set_status_message(
+                    f"Crawl complete. Saved {stats.saved} of {stats.crawled} crawled pages."
                 )
 
             Actor.log.info(
@@ -144,8 +154,12 @@ async def main() -> None:
         except Exception as exc:
             Actor.log.exception("Unhandled error during crawl: %s", exc)
             stats.failed += 1
+            fatal_error = f"Unhandled error during crawl: {exc}"
         finally:
             await _write_summary(stats, max_pages, final_stats)
+
+        if fatal_error:
+            await Actor.fail(fatal_error)
 
 
 if __name__ == "__main__":

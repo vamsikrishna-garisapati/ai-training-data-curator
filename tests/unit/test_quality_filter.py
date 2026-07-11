@@ -82,3 +82,35 @@ def test_accepts_long_doc_with_repeated_terms():
     assert unique_ratio < 0.35
     assert unique_ratio >= _min_unique_ratio(len(tokens))
     assert passes_quality(text) is True
+
+
+def test_accepts_long_doc_with_many_repeated_short_lines():
+    """Docs sites often repeat short heading/list lines; skip shape checks when long."""
+    from src.filters.quality_filter import LONG_DOC_WORDS
+
+    paragraphs = [
+        (
+            f"Paragraph number {i} discusses unique concept alpha{i} beta{i} gamma{i} "
+            f"delta{i} epsilon{i} in the context of documentation crawling systems."
+        )
+        for i in range(50)
+    ]
+    headings = "\n".join(["Overview", "Contents", "Next"] * 40)
+    text = "\n".join(paragraphs) + "\n" + headings
+    assert len(text.split()) >= LONG_DOC_WORDS
+    assert passes_quality(text) is True
+
+
+def test_rejects_listing_prices_but_allows_bare_decimals_in_docs():
+    listing = (
+        "Shop our catalog of items for sale today. "
+        + " ".join(f"Item {i} costs ${10 + i}.99 now." for i in range(6))
+    )
+    assert passes_quality(listing) is False
+
+    tutorial = (
+        "In this tutorial we compute averages such as 12.56 and 3.14 while explaining "
+        "how floating point numbers work in programming languages and data analysis. "
+        "Examples continue with 5.66 and 113.06 to illustrate rounding behavior clearly."
+    )
+    assert passes_quality(tutorial) is True

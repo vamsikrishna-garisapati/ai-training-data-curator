@@ -37,7 +37,7 @@ NAV_KEYWORDS = frozenset(
 )
 
 PRICE_PATTERN = re.compile(
-    r"(?:[$£€]\s?\d+|\d+\.\d{2}\s?(?:USD|EUR|GBP)?|price\s*:\s*\d+)",
+    r"(?:[$£€]\s?\d+(?:\.\d{2})?|\d+\.\d{2}\s?(?:USD|EUR|GBP)|price\s*:\s*\d+)",
     re.IGNORECASE,
 )
 
@@ -66,7 +66,8 @@ def passes_quality(text: str) -> bool:
         return False
 
     lines = [line.strip() for line in stripped.splitlines() if line.strip()]
-    if len(lines) > 3:
+    # Long docs often repeat headings/list markers; skip line-shape heuristics there.
+    if len(lines) > 3 and len(words) < LONG_DOC_WORDS:
         short_lines = sum(1 for line in lines if len(line) < SHORT_LINE_CHARS)
         if short_lines / len(lines) > MAX_SHORT_LINE_RATIO:
             return False

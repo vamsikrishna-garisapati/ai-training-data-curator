@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify Apify daily-check prefill path (synthetic + live httpbin fetch)."""
+"""Verify Apify daily-check prefill path (synthetic + live seed fetch)."""
 
 from __future__ import annotations
 

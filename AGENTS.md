@@ -34,7 +34,7 @@ Pipeline: **crawl → extract text (Trafilatura) → filter → deduplicate (Sim
 
 ```json
 {
-  "startUrls": [{ "url": "https://httpbin.org/html" }],
+  "startUrls": [{ "url": "https://raw.githubusercontent.com/vamsikrishna-garisapati/ai-training-data-curator/main/fixtures/daily_check.html" }],
   "maxPages": 10,
   "crawlStrategy": "seeds-only",
   "minTextLength": 100,
@@ -85,7 +85,8 @@ Run summary is stored in key-value store key `SUMMARY`.
 - Invalid input is **coerced to safe defaults** (run does not fail on bad types).
 - Missing or invalid `startUrls` and `sitemapUrl` causes the run to **fail** with a clear message (no silent demo URL fallback).
 - Per-page handler errors are logged; the run **continues** and exits **Succeeded**.
-- Apify **daily automated tests** use input **prefill** values (`https://httpbin.org/html`, `maxPages: 1`, `seeds-only`).
+- Apify **daily automated tests** use input **prefill** values (repo `fixtures/daily_check.html` via GitHub raw URL, `maxPages: 1`, `seeds-only`).
+- Single-page runs (`maxPages` ≤ 1) that save **zero** dataset rows **fail** the run so daily health checks surface breakage.
 
 ## Compliance
 

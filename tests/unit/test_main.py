@@ -21,6 +21,7 @@ def _patch_actor(mock_input: dict | None):
     mock_actor.log = MagicMock()
     mock_actor.create_proxy_configuration = AsyncMock(return_value=None)
     mock_actor.set_value = AsyncMock()
+    mock_actor.set_status_message = AsyncMock()
     mock_actor.fail = AsyncMock()
     mock_actor.__aenter__ = AsyncMock(return_value=mock_actor)
     mock_actor.__aexit__ = AsyncMock(return_value=None)
@@ -110,6 +111,35 @@ async def test_main_always_writes_summary_even_on_error():
 
     mock_actor.set_value.assert_awaited_once()
     assert mock_actor.set_value.call_args[0][0] == SUMMARY_KEY
+    mock_actor.fail.assert_awaited_once()
+    assert "Unhandled error" in mock_actor.fail.call_args[0][0]
+
+
+@pytest.mark.asyncio
+async def test_main_fails_empty_single_page_run():
+    mock_crawler = AsyncMock()
+    actor_patch, mock_actor = _patch_actor(
+        {"startUrls": [{"url": "https://books.toscrape.com"}], "maxPages": 1}
+    )
+    with actor_patch, patch("src.main.build_crawler", return_value=mock_crawler):
+        await main()
+
+    mock_actor.fail.assert_awaited_once()
+    assert "zero saved records" in mock_actor.fail.call_args[0][0]
+    mock_actor.set_status_message.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_main_warns_but_succeeds_empty_multi_page_run():
+    mock_crawler = AsyncMock()
+    actor_patch, mock_actor = _patch_actor(
+        {"startUrls": [{"url": "https://books.toscrape.com"}], "maxPages": 10}
+    )
+    with actor_patch, patch("src.main.build_crawler", return_value=mock_crawler):
+        await main()
+
+    mock_actor.fail.assert_not_called()
+    mock_actor.set_status_message.assert_awaited()
 
 
 @pytest.mark.asyncio

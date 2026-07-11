@@ -8,10 +8,12 @@
     "startUrls": {
       "title": "Start URLs",
       "type": "array",
-      "description": "Seed URLs to begin crawling. Provide at least one start URL or a sitemapUrl.",
+      "description": "Seed URLs to begin crawling. Required unless you provide sitemapUrl (at least one of the two must be set).",
       "editor": "requestListSources",
       "prefill": [
-        { "url": "https://httpbin.org/html" }
+        {
+          "url": "https://raw.githubusercontent.com/vamsikrishna-garisapati/ai-training-data-curator/main/fixtures/daily_check.html"
+        }
       ],
       "example": [
         { "url": "https://docs.example.com/getting-started" }
@@ -20,7 +22,7 @@
     "sitemapUrl": {
       "title": "Sitemap URL",
       "type": "string",
-      "description": "Optional sitemap.xml URL; URLs are merged with startUrls",
+      "description": "Optional sitemap.xml URL merged with startUrls. Required unless you provide at least one start URL.",
       "editor": "textfield",
       "example": "https://docs.example.com/sitemap.xml"
     },
